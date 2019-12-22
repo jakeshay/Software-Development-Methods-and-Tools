@@ -1,0 +1,214 @@
+1. SELECT last_name, first_name FROM employees WHERE country = 'UK' AND hire_date <= '2014-04-14'::date ORDER BY last_name ASC;
+ last_name | first_name 
+-----------+------------
+ Buchanan  | Steven
+ Dodsworth | Anne
+ King      | Robert
+ Suyama    | Michael
+
+ 2. SELECT product_id, product_name, units_in_stock, unit_price FROM products WHERE units_in_stock > 0 AND units_in_stock < reorder_level;
+ product_id |       product_name        | units_in_stock | unit_price 
+------------+---------------------------+----------------+------------
+          2 | Chang                     |             17 |         19
+          3 | Aniseed Syrup             |             13 |         10
+         11 | Queso Cabrales            |             22 |         21
+         21 | Sir Rodney's Scones       |              3 |         10
+         30 | Nord-Ost Matjeshering     |             10 |      25.89
+         32 | Mascarpone Fabioli        |              9 |         32
+         37 | Gravad lax                |             11 |         26
+         43 | Ipoh Coffee               |             17 |         46
+         45 | Rogede sild               |              5 |        9.5
+         48 | Chocolade                 |             15 |      12.75
+         49 | Maxilaku                  |             10 |         20
+         56 | Gnocchi di nonna Alice    |             21 |         38
+         64 | Wimmers gute Semmelknödel |             22 |      33.25
+         66 | Louisiana Hot Spiced Okra |              4 |         17
+         68 | Scottish Longbreads       |              6 |       12.5
+         70 | Outback Lager             |             15 |         15
+         74 | Longlife Tofu             |              4 |         10
+
+3. SELECT product_name, unit_price FROM products ORDER BY unit_price ASC LIMIT 1;
+ product_name | unit_price 
+--------------+------------
+ Geitost      |        2.5
+
+ 4. SELECT product_id, product_name, (units_in_stock * unit_price) AS total_inventory_value FROM products WHERE (units_in_stock*unit_price) < 200 ORDER BY total_inventory_value ASC;
+ product_id |       product_name        | total_inventory_value 
+------------+---------------------------+-----------------------
+         29 | Thüringer Rostbratwurst   |                     0
+          5 | Chef Anton's Gumbo Mix    |                     0
+         53 | Perth Pasties             |                     0
+         17 | Alice Mutton              |                     0
+         31 | Gorgonzola Telino         |                     0
+         21 | Sir Rodney's Scones       |                    30
+         74 | Longlife Tofu             |                    40
+         45 | Rogede sild               |                  47.5
+         66 | Louisiana Hot Spiced Okra |                    68
+         68 | Scottish Longbreads       |                    75
+         24 | Guaraná Fantástica        |                    90
+          3 | Aniseed Syrup             |                   130
+         13 | Konbu                     |                   144
+         54 | Tourtière                 |      156.449995994568
+         48 | Chocolade                 |                191.25
+
+5. SELECT ship_country, COUNT(ship_country) FROM orders WHERE EXTRACT(MONTH FROM order_date) = 8 AND EXTRACT(YEAR FROM order_date) = 1996 AND ship_country != 'USA' GROUP BY ship_country;
+ ship_country | count 
+--------------+-------
+ Brazil       |     4
+ UK           |     1
+ Finland      |     1
+ Germany      |     6
+ Mexico       |     2
+ Venezuela    |     1
+ Italy        |     2
+ Sweden       |     2
+ Spain        |     2
+ France       |     1
+
+ 6. SELECT customer_id, COUNT(customer_id) AS customer_orders FROM orders GROUP BY customer_id HAVING COUNT(customer_id) < 4 ORDER BY customer_id ASC;
+  customer_id | customer_orders 
+-------------+-----------------
+ BOLID       |               3
+ CENTC       |               1
+ CONSH       |               3
+ FRANR       |               3
+ GROSR       |               2
+ LAUGB       |               3
+ LAZYK       |               2
+ NORTS       |               3
+ THECR       |               3
+ TRAIH       |               3
+
+7. SELECT supplier_id, SUM(units_in_stock * unit_price) AS total_value FROM products GROUP BY supplier_id HAVING COUNT(*) > 3;
+ supplier_id |   total_value    
+-------------+------------------
+           8 | 4276.99999523163
+          12 | 3301.84996032715
+           2 |  2833.7999420166
+           7 | 4409.65005874634
+
+8. SELECT a.company_name, b.product_name, b.unit_price FROM suppliers a, products b WHERE a.country = 'France' AND a.supplier_id = b.supplier_id ORDER BY unit_price DESC;
+        company_name        |      product_name      | unit_price 
+----------------------------+------------------------+------------
+ Aux joyeux ecclésiastiques | Côte de Blaye          |      263.5
+ Gai pâturage               | Raclette Courdavault   |         55
+ Gai pâturage               | Camembert Pierrot      |         34
+ Aux joyeux ecclésiastiques | Chartreuse verte       |         18
+ Escargots Nouveaux         | Escargots de Bourgogne |      13.25
+
+9. SELECT a.last_name, a.first_name, a.title, a.extension, COUNT(a.*) AS number_of_orders FROM employees a, orders b WHERE a.employee_id = b.employee_id GROUP BY (a.last_name, a.first_name, a.title, a.extension) HAVING COUNT(a.*) < 75;
+ last_name | first_name |        title         | extension | number_of_orders 
+-----------+------------+----------------------+-----------+------------------
+ King      | Robert     | Sales Representative | 465       |               72
+ Buchanan  | Steven     | Sales Manager        | 3453      |               42
+ Dodsworth | Anne       | Sales Representative | 452       |               43
+ Suyama    | Michael    | Sales Representative | 428       |               67
+
+10. CREATE TABLE top_items(                                                     
+item_id INTEGER NOT NULL,
+item_code INTEGER NOT NULL,
+item_name VARCHAR(40),
+inventory_date DATE NOT NULL,
+supplier_id INTEGER NOT NULL,
+item_quantity INTEGER NOT NULL,
+item_price DECIMAL(9,2) NOT NULL,
+PRIMARY KEY (item_id)
+);
+
+11. INSERT INTO top_items SELECT product_id, category_id, product_name, CURRENT_DATE, units_in_stock, unit_price, supplier_id FROM products WHERE (units_in_stock * unit_price) > 2500;
+
+12. DELETE FROM top_items WHERE item_quantity < 50;
+
+13. ALTER TABLE top_items ADD COLUMN inventory_value DECIMAL(9,2) NOT NULL DEFAULT 0;
+
+14. UPDATE top_items SET inventory_value = item_price * item_quantity;
+
+15. DROP TABLE top_items;
+
+16. SELECT a.first_name, a.last_name, COUNT(b.customer_id) AS clients FROM empoyees a, orders b WHERE a.employee_id = b.employee_id GROUP BY (a.first_name, a.last_name) HAVING COUNT(b.customer_id) >= 50;
+ first_name | last_name | clients 
+------------+-----------+---------
+ Michael    | Suyama    |      67
+ Andrew     | Fuller    |      96
+ Janet      | Leverling |     127
+ Robert     | King      |      72
+ Margaret   | Peacock   |     156
+ Nancy      | Davolio   |     123
+ Laura      | Callahan  |     104
+
+ 17. SELECT product_name FROM products WHERE unit_price < (SELECT AVG(unit_price) FROM products);
+            product_name           
+----------------------------------
+ Chai
+ Chang
+ Aniseed Syrup
+ Chef Anton's Cajun Seasoning
+ Chef Anton's Gumbo Mix
+ Grandma's Boysenberry Spread
+ Queso Cabrales
+ Konbu
+ Tofu
+ Genen Shouyu
+ Pavlova
+ Teatime Chocolate Biscuits
+ Sir Rodney's Scones
+ Gustaf's Knäckebröd
+ Tunnbröd
+ Guaraná Fantástica
+ NuNuCa Nuß-Nougat-Creme
+ Nord-Ost Matjeshering
+ Gorgonzola Telino
+ Geitost
+ Sasquatch Ale
+ Steeleye Stout
+ Inlagd Sill
+ Gravad lax
+ Chartreuse verte
+ Boston Crab Meat
+ Jack's New England Clam Chowder
+ Singaporean Hokkien Fried Mee
+ Gula Malacca
+ Rogede sild
+ Spegesild
+ Zaanse koeken
+ Chocolade
+ Maxilaku
+ Valkoinen suklaa
+ Filo Mix
+ Tourtière
+ Pâté chinois
+ Ravioli Angelo
+ Escargots de Bourgogne
+ Sirop d'érable
+ Louisiana Fiery Hot Pepper Sauce
+ Louisiana Hot Spiced Okra
+ Laughing Lumberjack Lager
+ Scottish Longbreads
+ Outback Lager
+ Flotemysost
+ Röd Kaviar
+ Longlife Tofu
+ Rhönbräu Klosterbier
+ Lakkalikööri
+ Original Frankfurter grüne Soße
+(52 rows)
+
+
+ 18. SELECT COUNT(DISTINCT a.first_name) FROM employees a, orders b WHERE a.city = b.ship_city AND b.ship_address != a.address;
+  count 
+-------
+     7
+
+19. 
+
+20. SELECT COUNT(*) FROM orders WHERE ship_country = 'Sweden' AND required_date-shipped_date <7;
+ count 
+-------
+     5
+
+21. SELECT product_name FROM products WHERE supplier_id = (SELECT supplier_id FROM suppliers WHERE company_name = 'Leka Trading');
+         product_name          
+-------------------------------
+ Singaporean Hokkien Fried Mee
+ Ipoh Coffee
+ Gula Malacca
